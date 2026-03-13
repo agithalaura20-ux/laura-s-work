@@ -1,24 +1,25 @@
+python main.py
 ai-personal-assistant/
 │
 ├─ assistant/
-│   ├─ _init_.py
-│   ├─ core.py          # Main logic of the assistant
+│   ├─ __init__.py
+│   ├─ core.py          # Main logic of assistant
+│   ├─ voice.py         # Text-to-speech & speech-to-text
 │   ├─ skills/
-│   │   ├─ _init_.py
-│   │   ├─ weather.py   # Weather API
-│   │   ├─ news.py      # News API
+│   │   ├─ __init__.py
+│   │   ├─ weather.py   # Real weather API
+│   │   ├─ news.py      # Real news API
 │   │   └─ joke.py      # Joke API
-│   └─ voice.py         # Text-to-speech & speech-to-text
 │
 ├─ main.py              # Entry point
 ├─ requirements.txt     # Dependencies
-└─ README.md
+└─ README.md            # Instructions for portfolio / GitHub
 
 from assistant.core import Assistant
 
 def main():
     assistant = Assistant()
-    print("Hello! I am your AI Assistant. Type 'quit' to exit.")
+    print("Hello! I am your AI Assistant. Say 'quit' to exit.")
     while True:
         query = input("You: ")
         if query.lower() == "quit":
@@ -26,13 +27,14 @@ def main():
         response = assistant.respond(query)
         print(f"Assistant: {response}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
 
 from assistant.skills import weather, news, joke
+from assistant.voice import speak, listen
 
 class Assistant:
-    def _init_(self):
+    def __init__(self):
         self.skills = {
             "weather": weather.get_weather,
             "news": news.get_news,
@@ -41,18 +43,62 @@ class Assistant:
 
     def respond(self, text):
         text = text.lower()
+        # Voice option: speak response
         if "weather" in text:
-            return self.skills["weather"]()
+            answer = self.skills["weather"]()
         elif "news" in text:
-            return self.skills["news"]()
+            answer = self.skills["news"]()
         elif "joke" in text:
-            return self.skills["joke"]()
+            answer = self.skills["joke"]()
         else:
-            return "Sorry, I can't answer that yet 😅"
+            answer = "Sorry, I can't answer that yet 😅"
+        speak(answer)
+        return answer
+
+import pyttsx3
+
+# Initialize TTS engine
+engine = pyttsx3.init()
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# Optional: placeholder for speech-to-text
+def listen():
+    return input("You (voice input simulation): ")
+
+import requests
 
 def get_weather():
-    # later integrate with OpenWeatherMap API
-    return "Today's weather is sunny, 28°C 🌤️"
+    # Example: OpenWeatherMap API (replace YOUR_API_KEY)
+    api_key = "YOUR_API_KEY"
+    city = "London"
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    try:
+        response = requests.get(url).json()
+        temp = response['main']['temp']
+        desc = response['weather'][0]['description']
+        return f"The weather in {city} is {desc}, {temp}°C 🌤️"
+    except:
+        return "Sorry, I can't fetch the weather right now."
+
+
+import requests
+
+def get_news():
+    # Example: NewsAPI (replace YOUR_API_KEY)
+    api_key = "YOUR_API_KEY"
+    url = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}"
+    try:
+        articles = requests.get(url).json()['articles'][:3]
+        news_text = "\n".join([f"- {a['title']}" for a in articles])
+        return f"Top news:\n{news_text}"
+    except:
+        return "Sorry, I can't fetch news right now."
 
 def get_joke():
     return "Why do programmers love coffee? Because they can't C# 😆"
+
+pyttsx3
+requests
