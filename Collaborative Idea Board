@@ -1,0 +1,140 @@
+idea-board/
+│
+├─ public/
+│   └─ index.html
+│
+├─ src/
+│   ├─ components/
+│   │   ├─ Board.js
+│   │   └─ Note.js
+│   ├─ firebase.js       # Firebase config
+│   └─ App.js
+│
+├─ package.json
+└─ README.md
+
+npx create-react-app idea-board
+cd idea-board
+npm install firebase react-draggable
+
+// src/firebase.js
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+
+// src/App.js
+import React from "react";
+import Board from "./components/Board";
+import "./App.css";
+
+function App() {
+  return (
+    <div className="App">
+      <h1>Collaborative Idea Board</h1>
+      <Board />
+    </div>
+  );
+}
+
+export default App;
+
+// src/components/Board.js
+import React, { useState, useEffect } from "react";
+import { collection, addDoc, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
+import Note from "./Note";
+
+const Board = () => {
+  const [notes, setNotes] = useState([]);
+  const [input, setInput] = useState("");
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "notes"), (snapshot) => {
+      setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return unsub;
+  }, []);
+
+  const addNote = async () => {
+    if(input.trim() === "") return;
+    await addDoc(collection(db, "notes"), { text: input, x: 100, y: 100 });
+    setInput("");
+  };
+
+  const deleteNote = async (id) => {
+    await deleteDoc(doc(db, "notes", id));
+  };
+
+  return (
+    <div>
+      <input 
+        type="text" 
+        value={input} 
+        placeholder="Add a note..." 
+        onChange={(e) => setInput(e.target.value)} 
+      />
+      <button onClick={addNote}>Add</button>
+      <div style={{ position: "relative", width: "100%", height: "80vh", border: "1px solid #ccc", marginTop: "20px" }}>
+        {notes.map(note => (
+          <Note key={note.id} note={note} deleteNote={deleteNote} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Board;
+
+// src/components/Note.js
+import React from "react";
+import Draggable from "react-draggable";
+
+const Note = ({ note, deleteNote }) => {
+  return (
+    <Draggable defaultPosition={{ x: note.x, y: note.y }}>
+      <div style={{ 
+        padding: "10px", 
+        backgroundColor: "yellow", 
+        width: "150px", 
+        position: "absolute",
+        cursor: "grab",
+        borderRadius: "5px",
+        boxShadow: "1px 1px 5px rgba(0,0,0,0.3)"
+      }}>
+        <p>{note.text}</p>
+        <button onClick={() => deleteNote(note.id)}>Delete</button>
+      </div>
+    </Draggable>
+  );
+};
+
+export default Note;
+
+/* src/App.css */
+body {
+  font-family: Arial, sans-serif;
+}
+
+input {
+  padding: 8px;
+  width: 200px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+npm start
