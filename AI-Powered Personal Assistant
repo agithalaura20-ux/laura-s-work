@@ -1,8 +1,58 @@
-ai_personal_assistant/
-├── main.py              # Entry point program
-├── assistant.py         # Logic AI assistant
-├── requirements.txt     # Dependencies
-├── README.md            # Penjelasan project
-└── utils/
-    ├── weather_api.py   # Fungsi untuk ambil data cuaca
-    └── jokes.py         # Fungsi random jokes
+ai-personal-assistant/
+│
+├─ assistant/
+│   ├─ _init_.py
+│   ├─ core.py          # Main logic of the assistant
+│   ├─ skills/
+│   │   ├─ _init_.py
+│   │   ├─ weather.py   # Weather API
+│   │   ├─ news.py      # News API
+│   │   └─ joke.py      # Joke API
+│   └─ voice.py         # Text-to-speech & speech-to-text
+│
+├─ main.py              # Entry point
+├─ requirements.txt     # Dependencies
+└─ README.md
+
+from assistant.core import Assistant
+
+def main():
+    assistant = Assistant()
+    print("Hello! I am your AI Assistant. Type 'quit' to exit.")
+    while True:
+        query = input("You: ")
+        if query.lower() == "quit":
+            break
+        response = assistant.respond(query)
+        print(f"Assistant: {response}")
+
+if _name_ == "_main_":
+    main()
+
+from assistant.skills import weather, news, joke
+
+class Assistant:
+    def _init_(self):
+        self.skills = {
+            "weather": weather.get_weather,
+            "news": news.get_news,
+            "joke": joke.get_joke
+        }
+
+    def respond(self, text):
+        text = text.lower()
+        if "weather" in text:
+            return self.skills["weather"]()
+        elif "news" in text:
+            return self.skills["news"]()
+        elif "joke" in text:
+            return self.skills["joke"]()
+        else:
+            return "Sorry, I can't answer that yet 😅"
+
+def get_weather():
+    # later integrate with OpenWeatherMap API
+    return "Today's weather is sunny, 28°C 🌤️"
+
+def get_joke():
+    return "Why do programmers love coffee? Because they can't C# 😆"
