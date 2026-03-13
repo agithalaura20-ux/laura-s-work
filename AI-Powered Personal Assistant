@@ -1,0 +1,8 @@
+ai_personal_assistant/
+├── main.py              # Entry point program
+├── assistant.py         # Logic AI assistant
+├── requirements.txt     # Dependencies
+├── README.md            # Penjelasan project
+└── utils/
+    ├── weather_api.py   # Fungsi untuk ambil data cuaca
+    └── jokes.py         # Fungsi random jokes
